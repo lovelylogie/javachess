@@ -8,64 +8,70 @@
 public class Chess
 {
     private final int size = 8;
-    private Pieces[][] black;
-    private Pieces[][] white;
+    
+    private King   king;
+    private Queen  queen;
+    private Bishop bishop;
+    private Knight knight;
+    private Castle castle;
+    private Pawn   pawn;
+    
+    private Pieces[][] board;
 
     /**
      * Constructor for objects of class Chess
      */
     public Chess()
     {
-        black = new Pieces[size][size];
-        white = new Pieces[size][size];
+        board = new Pieces[size][size];
         
         // kings
         
-        black[4][0] = Pieces.KING;
-        white[4][7] = Pieces.KING;
+        board[4][0] = Pieces.BLACK_KING;
+        board[4][7] = Pieces.WHITE_KING;
         
         // queens
         
-        black[3][0] = Pieces.QUEEN;
-        white[3][7] = Pieces.QUEEN;
+        board[3][0] = Pieces.BLACK_QUEEN;
+        board[3][7] = Pieces.WHITE_QUEEN;
         
         // bishops
         
-        black[2][0] = Pieces.BISHOP;
-        black[5][0] = Pieces.BISHOP;
-        white[2][7] = Pieces.BISHOP;
-        white[5][7] = Pieces.BISHOP;
+        board[2][0] = Pieces.BLACK_BISHOP;
+        board[5][0] = Pieces.BLACK_BISHOP;
+        board[2][7] = Pieces.WHITE_BISHOP;
+        board[5][7] = Pieces.WHITE_BISHOP;
         
         // knights
         
-        black[1][0] = Pieces.KNIGHT;
-        black[6][0] = Pieces.KNIGHT;
-        white[1][7] = Pieces.KNIGHT;
-        white[6][7] = Pieces.KNIGHT;
+        board[1][0] = Pieces.BLACK_KNIGHT;
+        board[6][0] = Pieces.BLACK_KNIGHT;
+        board[1][7] = Pieces.WHITE_KNIGHT;
+        board[6][7] = Pieces.WHITE_KNIGHT;
         
         // castles
         
-        black[0][0] = Pieces.CASTLE;
-        black[7][0] = Pieces.CASTLE;
-        white[0][7] = Pieces.CASTLE;
-        white[7][7] = Pieces.CASTLE;
+        board[0][0] = Pieces.BLACK_CASTLE;
+        board[7][0] = Pieces.BLACK_CASTLE;
+        board[0][7] = Pieces.WHITE_CASTLE;
+        board[7][7] = Pieces.WHITE_CASTLE;
         
         // pawns
         
         for (int i = 0; i < size; i++) 
-            black[i][1] = Pieces.PAWN;
+            board[i][1] = Pieces.BLACK_PAWN;
         for (int i = 0; i < size; i++)
-            white[i][6] = Pieces.PAWN;
+            board[i][6] = Pieces.WHITE_PAWN;
             
         // empty spaces
         
         for (int i = 0; i < size; i++)
             for (int j = 0; j < size; j++) {
-                if (black[i][j] == null) black[i][j] = Pieces.EMPTY;
+                if (board[i][j] == null) board[i][j] = Pieces.EMPTY;
             }
         for (int i = 0; i < size; i++)
             for (int j = 0; j < size; j++) {
-                if (white[i][j] == null) white[i][j] = Pieces.EMPTY;
+                if (board[i][j] == null) board[i][j] = Pieces.EMPTY;
             }
     }
     
@@ -73,15 +79,31 @@ public class Chess
         return k >= 0 && k < size;
     }
     
-    public boolean isLegal(int r, int c) {
-        return isLegal(r) && isLegal(c);
+    public boolean isLegal(int x, int y) {
+        return isLegal(x) && isLegal(y);
     }
     
-    public Pieces getBlack(int x, int y) {
-        return this.black[x][y];
+    public void leftClick(int x, int y) {
+        if (isLegal(x, y)) {
+            Pieces selectedPiece = null;
+            if (getBoard(x, y) == Pieces.EMPTY) return;
+            else                                selectedPiece = getBoard(x, y);
+            String piece = selectedPiece.name().substring(6); // turns the enum into a string so that the piece's class can be called
+            if (piece.equals("KING"))   {}                    // cuts it off at index 6 to get rid of BLACK_ or WHITE_ 
+            if (piece.equals("QUEEN"))  {}
+            if (piece.equals("BISHOP")) {}
+            if (piece.equals("KNIGHT")) {}
+            if (piece.equals("CASTLE")) {}
+            if (piece.equals("PAWN"))   {pawn.possibleMoves(x, y);}            
+        }
     }
     
-    public Pieces getWhite(int x, int y) {
-        return this.white[x][y];
+    public void bugFix() {
+        new Pawn();
+        pawn.possibleMoves(3, 6);
+    }
+    
+    public Pieces getBoard(int x, int y) {
+        return this.board[x][y];
     }
 }
