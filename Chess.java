@@ -1,10 +1,4 @@
 
-/**
- * The internal representation of the chess board
- *
- * @author (your name)
- * @version (a version number or a date)
- */
 public class Chess
 {
     private final int size = 8;
@@ -18,9 +12,6 @@ public class Chess
     
     private Pieces[][] board;
 
-    /**
-     * Constructor for objects of class Chess
-     */
     public Chess()
     {
         board = new Pieces[size][size];
@@ -94,13 +85,8 @@ public class Chess
             if (piece.equals("BISHOP")) {}
             if (piece.equals("KNIGHT")) {}
             if (piece.equals("CASTLE")) {}
-            if (piece.equals("PAWN"))   {pawn.possibleMoves(x, y);}            
+            if (piece.equals("PAWN"))   {pawn = new Pawn(); pawn.possibleMoves(x, y);}            
         }
-    }
-    
-    public void bugFix() {
-        new Pawn();
-        pawn.possibleMoves(3, 6);
     }
     
     public Pieces getBoard(int x, int y) {

@@ -1,9 +1,4 @@
-/**
- * Displays the chess board through SimpleCanvas
- *
- * @author (your name)
- * @version (a version number or a date)
- */
+
 import java.awt.*;
 import java.awt.event.*; 
 import java.awt.geom.Rectangle2D;
@@ -11,29 +6,26 @@ import java.awt.font.FontRenderContext;
 
 public class ChessViewer implements MouseListener
 {
-    private Chess board = new Chess();     // the internal representation of the chess board
-    private SimpleCanvas sc;               // the display window
-    private final int cell = 100, size = 8;
+    private static Chess board = new Chess();     // the internal representation of the chess board
+    private static SimpleCanvas sc;               // the display window
+    private static int cell = 100, size = 8;
     
     // colours
-    private Color cream     = new Color(208,137,71,255);
-    private Color brown     = new Color(254,206,158,255);
-    private Color legal_c   = new Color(214,214,189,255);
-    private Color legal_dg  = new Color(106, 135, 77, 255);
-    private Color w         = Color.white;
-    private Color b         = Color.black;
+    private static Color cream     = new Color(208,137,71);
+    private static Color brown     = new Color(254,206,158);
+    private static Color legal_c   = new Color(199,145,95); // colours for circles drawn on legal
+    private static Color legal_dg  = new Color(144,92,40);  // move spaces
+    private static Color w         = Color.white;
+    private static Color b         = Color.black;
     
     // piece unicodes
-    private String king   = "\u265A"; 
-    private String queen  = "\u265B"; 
-    private String castle = "\u265C"; 
-    private String bishop = "\u265D"; 
-    private String knight = "\u265E"; 
-    private String pawn   = "\u265F";
+    private static String king   = "\u265A"; 
+    private static String queen  = "\u265B"; 
+    private static String castle = "\u265C"; 
+    private static String bishop = "\u265D"; 
+    private static String knight = "\u265E"; 
+    private static String pawn   = "\u265F";
     
-    /**
-     * Constructor for objects of class ChessViewer
-     */
     public ChessViewer() {
         sc = new SimpleCanvas("Chess", 800, 800, Color.white);
         sc.setFont(new Font("Times", 1, 70));
@@ -41,12 +33,12 @@ public class ChessViewer implements MouseListener
         displayBoard();
     }
     
-    private void displayBoard() {
+    private static void displayBoard() {
         drawGrid();
         drawPieces();
     }
     
-    private void drawGrid() {
+    private static void drawGrid() {
         for (int i = 0; i < size; i++)
             for (int j = 0; j < size; j++)
             {
@@ -56,7 +48,7 @@ public class ChessViewer implements MouseListener
             }
     }
         
-    private void drawPieces() {
+    private static void drawPieces() {
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 // black pieces
@@ -83,7 +75,8 @@ public class ChessViewer implements MouseListener
         }
     }
     
-    public void drawPossibleMove(String possibleMoves) {
+    public static void drawPossibleMove(String possibleMoves) {
+        displayBoard();
         String coordinates_str[] = possibleMoves.split(" ");
         // now have to turn array of strings into array of ints
         int size1 = coordinates_str.length; // called it size1 so im not accidentally refering to the instance variable size
@@ -97,19 +90,19 @@ public class ChessViewer implements MouseListener
         }
     }
     
-    private void drawTile(int x, int y, Color colouw) {
+    private static void drawTile(int x, int y, Color colouw) {
         sc.drawRectangle(cell * x, cell * y, cell * x + cell, cell * y + cell, colouw); 
     }
     
-    public void drawCircle(int x, int y) {
+    public static void drawCircle(int x, int y) {
         Color colour;
         if (x % 2 == 0 && y % 2 == 0 || 
-            x % 2 == 1 && y % 2 == 1)   colour = legal_c;               
-        else                            colour = legal_dg;
+            x % 2 == 1 && y % 2 == 1)   colour = legal_dg;               
+        else                            colour = legal_c;
         sc.drawDisc(cell * x + cell / 2, cell * y + cell / 2, 17, colour);
     }
 
-    private void drawPiece(String piece, int x, int y, Color colouw) {
+    private static  void drawPiece(String piece, int x, int y, Color colouw) {
         drawCenteredString(piece, cell * x + cell / 2, cell * y + cell / 2, colouw);
     }
 
@@ -133,7 +126,7 @@ public class ChessViewer implements MouseListener
      * Draws a string with the centre of this string
      * at the input coordinates
      */
-    public void drawCenteredString(String text, int x, int y, Color Colouw) {
+    public static void drawCenteredString(String text, int x, int y, Color Colouw) {
         FontRenderContext frc = new FontRenderContext(null,true,true);
         Rectangle2D size = sc.getFont().getStringBounds(text, frc);
         int fontX = x - (int)size.getWidth() / 2;
