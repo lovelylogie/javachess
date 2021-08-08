@@ -33,7 +33,7 @@ public class ChessViewer implements MouseListener
         displayBoard();
     }
     
-    private static void displayBoard() {
+    public static void displayBoard() {
         drawGrid();
         drawPieces();
     }
@@ -75,7 +75,7 @@ public class ChessViewer implements MouseListener
         }
     }
     
-    public static void drawPossibleMove(String possibleMoves) {
+    public static void drawPossibleMoves(String possibleMoves) {
         displayBoard();
         String coordinates_str[] = possibleMoves.split(" ");
         // now have to turn array of strings into array of ints
@@ -83,6 +83,7 @@ public class ChessViewer implements MouseListener
         int [] coordinates_int = new int [size1];
         for (int i = 0; i < size1; i++) 
             coordinates_int[i] = Integer.parseInt(coordinates_str[i]);
+        board.possibleMoves = coordinates_int;
         for (int i = 0; i < size1; i++) {
             int z = 0;
             z = coordinates_int[i];
@@ -102,8 +103,8 @@ public class ChessViewer implements MouseListener
         sc.drawDisc(cell * x + cell / 2, cell * y + cell / 2, 17, colour);
     }
 
-    private static  void drawPiece(String piece, int x, int y, Color colouw) {
-        drawCenteredString(piece, cell * x + cell / 2, cell * y + cell / 2, colouw);
+    private static  void drawPiece(String piece, int x, int y, Color colour) {
+        drawCenteredString(piece, cell * x + cell / 2, cell * y + cell / 2, colour);
     }
 
     public void leftClick(int x, int y) {
