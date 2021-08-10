@@ -22,6 +22,7 @@ public class Chess
     {
         board = new Pieces[size][size];
         this.selectedPiece = null;
+        this.isPieceSelected = false;
         
         // kings
         
@@ -80,6 +81,7 @@ public class Chess
     public void movePiece(int x1, int y1, int x2, int y2) {
             board[x1][y1] = Pieces.EMPTY;
             board[x2][y2] = selectedPiece;
+            this.isPieceSelected = false;
             viewer.displayBoard();
     }
     
@@ -92,19 +94,22 @@ public class Chess
                 if (x == x_coordinate && y == y_coordinate) 
                     {movePiece(pieceSelectedCoordinate[0], pieceSelectedCoordinate[1], x, y);}
             }
+            if (getBoard(x, y) == Pieces.EMPTY) {this.isPieceSelected = false; viewer.displayBoard(); return;}
         }
-        if (getBoard(x, y) == Pieces.EMPTY) {this.isPieceSelected = false; return;}
-        else                                {this.selectedPiece = getBoard(x, y);}
-        this.isPieceSelected = true;
-        this.pieceSelectedCoordinate[0] = x; 
-        this.pieceSelectedCoordinate[1] = y;
-        String piece = selectedPiece.name().substring(6); // turns the enum into a string so that the piece's class can be called
-        if (piece.equals("KING"))   {}                    // cuts it off at index 6 to get rid of BLACK_ or WHITE_ 
-        if (piece.equals("QUEEN"))  {}
-        if (piece.equals("BISHOP")) {}
-        if (piece.equals("KNIGHT")) {}
-        if (piece.equals("CASTLE")) {}
-        if (piece.equals("PAWN"))   {pawn = new Pawn(); pawn.possibleMoves(x, y);}            
+        else if (getBoard(x, y) != Pieces.EMPTY) {
+            this.selectedPiece = getBoard(x, y);
+            this.isPieceSelected = true;
+            this.pieceSelectedCoordinate[0] = x; 
+            this.pieceSelectedCoordinate[1] = y;
+            String piece = selectedPiece.name().substring(6); // turns the enum into a string so that the piece's class can be called
+            if (piece.equals("KING"))   {}                    // cuts it off at index 6 to get rid of BLACK_ or WHITE_ 
+            if (piece.equals("QUEEN"))  {}
+            if (piece.equals("BISHOP")) {}
+            if (piece.equals("KNIGHT")) {}
+            if (piece.equals("CASTLE")) {}
+            if (piece.equals("PAWN"))   {pawn = new Pawn(); pawn.possibleMoves(x, y);} 
+        }
+        else return;           
     }
     
     public Pieces getBoard(int x, int y) {
