@@ -42,9 +42,8 @@ public class ChessViewer implements MouseListener
         for (int i = 0; i < size; i++)
             for (int j = 0; j < size; j++)
             {
-                if (j % 2 == 0 && i % 2 == 0 || 
-                    j % 2 == 1 && i % 2 == 1)   drawTile(i, j, cream);               
-                else                            drawTile(i, j, brown);
+                if (board.getTileColour(i, j) == TileColour.WHITE) drawTile(i, j, cream);
+                if (board.getTileColour(i, j) == TileColour.BLACK) drawTile(i, j, brown);
             }
     }
         
@@ -76,40 +75,37 @@ public class ChessViewer implements MouseListener
     }
     
     public static void drawPossibleMoves(String possibleMoves) {
-        displayBoard();
-        String coordinates_str[] = possibleMoves.split(" ");
-        // now have to turn array of strings into array of ints
-        int size1 = coordinates_str.length; // called it size1 so im not accidentally refering to the instance variable size
-        int [] coordinates_int = new int [size1];
-        for (int i = 0; i < size1; i++) 
-            coordinates_int[i] = Integer.parseInt(coordinates_str[i]);
-        board.possibleMoves = coordinates_int;
+        if (possibleMoves.equals("")) return;      // if the string is empty end the method
+        String coordinates_str[] = possibleMoves.split(" "); 
+        int size1 = coordinates_str.length;        // now have to turn array of strings into array of ints
+        int [] coordinates_int = new int [size1];  // called it size1 so im not accidentally referring to the instance variable size
+        for (int i = 0; i < size1; i++)
+            coordinates_int[i] = Integer.parseInt(coordinates_str[i]); 
+        board.possibleMoves = coordinates_int;     // pass the possible moves to the possibleMoves array in chess class
         for (int i = 0; i < size1; i++) {
-            int z = 0;
+            int z;
             z = coordinates_int[i];
             drawCircle(z / 10, z % 10);
         }
     }
     
-    private static void drawTile(int x, int y, Color colouw) {
-        sc.drawRectangle(cell * x, cell * y, cell * x + cell, cell * y + cell, colouw); 
+    private static void drawTile(int x, int y, Color colour) {
+        sc.drawRectangle(cell * x, cell * y, cell * x + cell, cell * y + cell, colour); 
     }
     
     public static void drawCircle(int x, int y) {
-        Color colour;
-        if (x % 2 == 0 && y % 2 == 0 || 
-            x % 2 == 1 && y % 2 == 1)   colour = legal_dg;               
-        else                            colour = legal_c;
+        Color colour = null;
+        if (board.getTileColour(x, y) == TileColour.WHITE) colour = legal_dg;
+        if (board.getTileColour(x, y) == TileColour.BLACK) colour = legal_c;     
         sc.drawDisc(cell * x + cell / 2, cell * y + cell / 2, 17, colour);
     }
 
-    private static  void drawPiece(String piece, int x, int y, Color colour) {
+    private static void drawPiece(String piece, int x, int y, Color colour) {
         drawCenteredString(piece, cell * x + cell / 2, cell * y + cell / 2, colour);
     }
 
     public void leftClick(int x, int y) {
-        if (!board.isLegal(x, y)) return;
-        board.leftClick(x, y);
+        if (board.isLegal(x, y)) board.leftClick(x, y);
     }
     
     public void mousePressed(MouseEvent e) {
