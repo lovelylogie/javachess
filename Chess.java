@@ -10,15 +10,16 @@ public class Chess
     private Pieces selectedPiece;
     private Pieces[][] board;
     public TileColour[][] tileColour;
+    private String currentTurn;
 
     public Chess()
     {
         board      = new Pieces    [size][size];
         tileColour = new TileColour[size][size];
-        //tile_colour = new 
         pieceSelectedCoordinate = new int[2];
         this.selectedPiece = null;
         this.isPieceSelected = false;
+        this.currentTurn = "WHITE";
         // kings        
         board[4][0] = Pieces.BLACK_KING;
         board[4][7] = Pieces.WHITE_KING;        
@@ -51,8 +52,8 @@ public class Chess
         for (int i = 0; i < size; i++)
             for (int j = 0; j < size; j++) {
                 if (j % 2 == 0 && i % 2 == 0 || 
-                    j % 2 == 1 && i % 2 == 1)   {tileColour[i][j] = TileColour.WHITE;}              
-                else                            {tileColour[i][j] = TileColour.BLACK;}
+                    j % 2 == 1 && i % 2 == 1) {tileColour[i][j] = TileColour.WHITE;}
+                else                          {tileColour[i][j] = TileColour.BLACK;}
             }
     }
     
@@ -76,38 +77,45 @@ public class Chess
         return board[x][y].name().substring(0,5);
     }
     
-    public boolean isCoordEmpty (int x, int y) {
+    public String getPiece(int x, int y) {
+        return board[x][y].name().substring(6);
+    }
+    
+    public boolean isEmpty (int x, int y) {
         return board[x][y] == Pieces.EMPTY;
+    }
+    
+    public void changeTurn() {
+        if (currentTurn.equals("WHITE")) {this.currentTurn = "BLACK";}
+        else                             {this.currentTurn = "WHITE";}
     }
     
     public void movePiece(int x1, int y1, int x2, int y2) {
         board[x1][y1] = Pieces.EMPTY;
         board[x2][y2] = selectedPiece;
+        changeTurn();
         viewer.displayBoard();
-    }
-    
-    public void replacePawnWithQueen(int x, int y) {
-        String piece = board[x][y].name().substring(0,5);
-        if (piece.equals("BLACK")) {this.board[x][y] = Pieces.BLACK_QUEEN;}
-        if (piece.equals("WHITE")) {this.board[x][y] = Pieces.WHITE_QUEEN;}
     }
     
     public void leftClick(int x, int y) {
         if (isPieceSelected) {
+            if (x != pieceSelectedCoordinate[0] || y != pieceSelectedCoordinate[1])
+                viewer.displayBoard();
             for (int i = 0; i < possibleMoves.length; i++) {
-                int z = possibleMoves[i];
-                int x_coordinate = z / 10;
-                int y_coordinate = z % 10;
+                int x_coordinate = possibleMoves[i] / 10; 
+                int y_coordinate = possibleMoves[i] % 10;
                 if (x == x_coordinate && y == y_coordinate) {
                     movePiece(pieceSelectedCoordinate[0], pieceSelectedCoordinate[1], x, y); 
-                    //if (selectedPiece == Pieces.WHITE_PAWN || selectedPiece == Pieces.BLACK_PAWN && y == 0 || y == 7) // when pawn reaches the other side
-                        //{replacePawnWithQueen(x, y);}                                                                 // of the board change to queen
                     this.isPieceSelected = false; 
                     return;
                 }
             }
         }
-        if (getBoard(x, y) == Pieces.EMPTY) {
+        if (!pieceColour(x, y).equals(currentTurn) && !isEmpty(x, y)) {
+            viewer.displayBoard(); 
+            return;
+        }
+        if (isEmpty(x, y)) {
             this.isPieceSelected = false; 
             viewer.displayBoard(); 
             return;
@@ -116,8 +124,8 @@ public class Chess
         this.isPieceSelected = true;
         this.pieceSelectedCoordinate[0] = x; 
         this.pieceSelectedCoordinate[1] = y;
-        String piece = selectedPiece.name().substring(6); // turns the enum into a string so that the piece's class can be called
-        if (piece.equals("KING"))   {}                    // cuts it off at index 6 to get rid of BLACK_ or WHITE_ 
+        String piece = getPiece(x, y);
+        if (piece.equals("KING"))   {}
         if (piece.equals("QUEEN"))  {}
         if (piece.equals("BISHOP")) {}
         if (piece.equals("KNIGHT")) {}
@@ -125,56 +133,36 @@ public class Chess
         if (piece.equals("PAWN"))   {pawn(x, y);}            
     }
     
-    public void pawn(int x, int y)
-    {
+    public void pawn(int x, int y) {
+        int z;
         String possibleMoves = "";
-        // if the pawn is white
-        if (board[x][y] == Pieces.valueOf("WHITE_PAWN")) {
-            if (isCoordEmpty(x, y - 1)) {possibleMoves +=  x      + "" + (y - 1) + " ";}
-            if (isCoordEmpty(x, y - 1) && y == 6 &&
-                isCoordEmpty(x, y - 2)) {possibleMoves +=  x      + "" + (y - 2) + " ";} 
-            if (isLegal (x - 1, y - 1) && pieceColour(x - 1, y - 1).equals("BLACK"))  
-                                        {possibleMoves += (x - 1) + "" + (y - 1) + " ";}
-            if (isLegal (x + 1, y - 1) && pieceColour(x + 1, y - 1).equals("BLACK"))  
-                                        {possibleMoves += (x + 1) + "" + (y - 1) + " ";}
-        }
-        // if the pawn is black
-        if (board[x][y] == Pieces.valueOf("BLACK_PAWN")) {
-            if (getBoard(x, y + 1) == Pieces.EMPTY)                            // down 
-                {possibleMoves +=  x      + "" + (y + 1) + " ";}
-            if (getBoard(x, y + 1) == Pieces.EMPTY && y == 1 &&                // down + 1 (start)
-                getBoard(x, y + 2) == Pieces.EMPTY) 
-                {possibleMoves +=  x      + "" + (y + 2) + " ";}                        
-            if (isLegal (x - 1, y + 1) &&                                      // down left  
-                getBoard(x - 1, y + 1).name().substring(0,5).equals("WHITE"))           
-                {possibleMoves += (x - 1) + "" + (y + 1) + " ";}
-            if (isLegal (x + 1, y + 1) &&                                      // down right  
-                getBoard(x + 1, y + 1).name().substring(0,5).equals("WHITE"))         
-                {possibleMoves += (x + 1) + "" + (y + 1) + " ";}
-        }
+        String oppositeColour = "";        
+        if (pieceColour(x, y).equals("WHITE")) {oppositeColour = "BLACK"; z =  1;} 
+        else                                   {oppositeColour = "WHITE"; z = -1;}
+        if (isEmpty(x, y - z))                 {possibleMoves +=  x      + "" + (y - z)       + " ";} // forward
+        if (isLegal (x - z, y - z) && pieceColour(x - z, y - z).equals(oppositeColour))  
+                                               {possibleMoves += (x - z) + "" + (y - z)       + " ";} // forward left
+        if (isLegal (x + z, y - z) && pieceColour(x + z, y - z).equals(oppositeColour))  
+                                               {possibleMoves += (x + z) + "" + (y - z)       + " ";} // forward right
+        if (isEmpty(x, y - z) && y == 6 || y == 1 && isEmpty(x, y - z) && isEmpty(x, y - (2 * z)))
+                                               {possibleMoves +=  x      + "" + (y - (2 * z)) + " ";} // jump at start
         viewer.drawPossibleMoves(possibleMoves);
     }
     
     public void castle (int x, int y) {
-        String pieceColour = getBoard(x, y).name().substring(0,5);
-        for (int[] ds : new int [][] {{0,1},{0,-1},{1,0},{-1,0}})
-        {
-            int x1 = x + ds[0];
-            int y1 = y + ds[1];
-            while (isLegal(x1, y1))
-            {
-                //if (!board[x1][y1].name().substring(0,5).equals(pieceColour)) {possibleMoves += x1 + "" + y1 + " ";}
-            }
-        }
-        
-        
-        
+        String pieceColour = pieceColour(x, y);
         String possibleMoves = "";
-        if (board[x][y] == Pieces.valueOf("BLACK_CASTLE")) {
-        for(int z = y; getBoard(x,z).name().substring(0,5) != "BLACK"; z++) {
-            {possibleMoves += x;       possibleMoves += (y + 1) + " ";}
-        }
-        }
+        String oppositeColour = "";
+        if (pieceColour(x, y).equals("WHITE")) {oppositeColour = "BLACK";}
+        else                                   {oppositeColour = "WHITE";}
+        for(int z = y - 1; isLegal(x, z) && !pieceColour(x, z).equals(pieceColour); z--) 
+            {possibleMoves += x + "" + z + " "; if (pieceColour(x, z).equals(oppositeColour)) {break;}} // up
+        for(int z = y + 1; isLegal(x, z) && !pieceColour(x, z).equals(pieceColour); z++) 
+            {possibleMoves += x + "" + z + " "; if (pieceColour(x, z).equals(oppositeColour)) {break;}} // down
+        for(int z = x - 1; isLegal(z, y) && !pieceColour(z, y).equals(pieceColour); z--) 
+            {possibleMoves += z + "" + y + " "; if (pieceColour(z, y).equals(oppositeColour)) {break;}} // left
+        for(int z = x + 1; isLegal(z, y) && !pieceColour(z, y).equals(pieceColour); z++) 
+            {possibleMoves += z + "" + y + " "; if (pieceColour(z, y).equals(oppositeColour)) {break;}} // right
         viewer.drawPossibleMoves(possibleMoves);
     }
     }

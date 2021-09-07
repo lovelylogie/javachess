@@ -1,4 +1,4 @@
-
+import java.util.*;
 import java.awt.*;
 import java.awt.event.*; 
 import java.awt.geom.Rectangle2D;
@@ -19,16 +19,18 @@ public class ChessViewer implements MouseListener
     private static Color b         = Color.black;
     
     // piece unicodes
-    private static String king   = "\u265A"; 
-    private static String queen  = "\u265B"; 
-    private static String castle = "\u265C"; 
-    private static String bishop = "\u265D"; 
-    private static String knight = "\u265E"; 
-    private static String pawn   = "\u265F";
+    private static Map<String, String> pieceString = Map.of(
+    "king",   "\u265A",
+    "queen",  "\u265B",
+    "castle", "\u265C",
+    "bishop", "\u265D",
+    "knight", "\u265E",
+    "pawn",   "\u265F"
+    );
     
     public ChessViewer() {
         sc = new SimpleCanvas("Chess", 800, 800, Color.white);
-        sc.setFont(new Font("Times", 1, 70));
+        sc.setFont(new Font("Times", 1, 90));
         sc.addMouseListener(this);
         displayBoard();
     }
@@ -48,45 +50,31 @@ public class ChessViewer implements MouseListener
     }
         
     private static void drawPieces() {
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++)
             for (int j = 0; j < size; j++) {
-                // black pieces
-                Pieces black = board.getBoard(i, j);
-                if (black == Pieces.EMPTY)        {continue;}
-                if (black == Pieces.BLACK_KING)   {drawPiece(king,   i, j, b); continue;}
-                if (black == Pieces.BLACK_QUEEN)  {drawPiece(queen,  i, j, b); continue;}
-                if (black == Pieces.BLACK_BISHOP) {drawPiece(bishop, i, j, b); continue;}
-                if (black == Pieces.BLACK_KNIGHT) {drawPiece(knight, i, j, b); continue;}
-                if (black == Pieces.BLACK_CASTLE) {drawPiece(castle, i, j, b); continue;}
-                if (black == Pieces.BLACK_PAWN)   {drawPiece(pawn,   i, j, b); continue;}
+                if (board.isEmpty(i, j)) {continue;}
+                Color colour = null;
+                String piece = board.getPiece(i, j).toLowerCase();
+                if (board.pieceColour(i, j).equals("WHITE")) {colour = w;} 
+                else                                         {colour = b;}
+                drawPiece(pieceString.get(piece), i, j, colour);
             }
-            for (int j = 0; j < size; j++) {
-                // white pieces
-                Pieces white = board.getBoard(i, j);
-                if (white == Pieces.EMPTY)        {continue;}
-                if (white == Pieces.WHITE_KING)   {drawPiece(king,   i, j, w); continue;}
-                if (white == Pieces.WHITE_QUEEN)  {drawPiece(queen,  i, j, w); continue;}
-                if (white == Pieces.WHITE_BISHOP) {drawPiece(bishop, i, j, w); continue;}
-                if (white == Pieces.WHITE_KNIGHT) {drawPiece(knight, i, j, w); continue;}
-                if (white == Pieces.WHITE_CASTLE) {drawPiece(castle, i, j, w); continue;}
-                if (white == Pieces.WHITE_PAWN)   {drawPiece(pawn,   i, j, w); continue;}
-            }
-        }
     }
     
     public static void drawPossibleMoves(String possibleMoves) {
-        if (possibleMoves.equals("")) return;      // if the string is empty end the method
+        if (possibleMoves.equals("")) {return;}    // if the string is empty end the method
         String coordinates_str[] = possibleMoves.split(" "); 
-        int size1 = coordinates_str.length;        // now have to turn array of strings into array of ints
-        int [] coordinates_int = new int [size1];  // called it size1 so im not accidentally referring to the instance variable size
-        for (int i = 0; i < size1; i++)
-            coordinates_int[i] = Integer.parseInt(coordinates_str[i]); 
+        int arraySize = coordinates_str.length;    // now have to turn array of strings into array of ints
+        int [] coordinates_int = new int [arraySize];
+        for (int i = 0; i < arraySize; i++) {coordinates_int[i] = Integer.parseInt(coordinates_str[i]);}
         board.possibleMoves = coordinates_int;     // pass the possible moves to the possibleMoves array in chess class
-        for (int i = 0; i < size1; i++) {
-            int z;
-            z = coordinates_int[i];
-            drawCircle(z / 10, z % 10);
+        for (int i = 0; i < arraySize; i++) {
+            int x = coordinates_int[i] / 10; 
+            int y = coordinates_int[i] % 10;
+            if (board.isEmpty(x, y)) {drawCircle(x, y);}
+            else                     {drawTakingPieceCircle(x, y);}
         }
+        drawPieces();
     }
     
     private static void drawTile(int x, int y, Color colour) {
@@ -95,13 +83,22 @@ public class ChessViewer implements MouseListener
     
     public static void drawCircle(int x, int y) {
         Color colour = null;
-        if (board.getTileColour(x, y) == TileColour.WHITE) colour = legal_dg;
-        if (board.getTileColour(x, y) == TileColour.BLACK) colour = legal_c;     
+        if (board.getTileColour(x, y) == TileColour.WHITE) {colour = legal_dg;}
+        if (board.getTileColour(x, y) == TileColour.BLACK) {colour = legal_c ;}   
         sc.drawDisc(cell * x + cell / 2, cell * y + cell / 2, 17, colour);
+    }
+    
+    public static void drawTakingPieceCircle(int x, int y) {
+        Color colour1 = null;
+        Color colour2 = null;
+        if (board.getTileColour(x, y) == TileColour.WHITE) {colour1 = legal_dg; colour2 = cream;}
+        if (board.getTileColour(x, y) == TileColour.BLACK) {colour1 = legal_c;  colour2 = brown;}     
+        sc.drawDisc(cell * x + cell / 2, cell * y + cell / 2, 50, colour1);
+        sc.drawDisc(cell * x + cell / 2, cell * y + cell / 2, 43, colour2);
     }
 
     private static void drawPiece(String piece, int x, int y, Color colour) {
-        drawCenteredString(piece, cell * x + cell / 2, cell * y + cell / 2, colour);
+        drawCenteredString(piece, cell * x + cell / 2, cell * y + cell / 2 + 7, colour);
     }
 
     public void leftClick(int x, int y) {
