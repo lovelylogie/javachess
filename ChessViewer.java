@@ -42,14 +42,13 @@ public class ChessViewer implements MouseListener
     
     private static void drawGrid() {
         for (int i = 0; i < size; i++)
-            for (int j = 0; j < size; j++)
-            {
+            for (int j = 0; j < size; j++) {
                 if (board.getTileColour(i, j) == TileColour.WHITE) drawTile(i, j, cream);
                 if (board.getTileColour(i, j) == TileColour.BLACK) drawTile(i, j, brown);
             }
     }
         
-    private static void drawPieces() {
+    public static void drawPieces() {
         for (int i = 0; i < size; i++)
             for (int j = 0; j < size; j++) {
                 if (board.isEmpty(i, j)) {continue;}
@@ -61,20 +60,27 @@ public class ChessViewer implements MouseListener
             }
     }
     
-    public static void drawPossibleMoves(String possibleMoves) {
-        if (possibleMoves.equals("")) {return;}    // if the string is empty end the method
-        String coordinates_str[] = possibleMoves.split(" "); 
-        int arraySize = coordinates_str.length;    // now have to turn array of strings into array of ints
-        int [] coordinates_int = new int [arraySize];
-        for (int i = 0; i < arraySize; i++) {coordinates_int[i] = Integer.parseInt(coordinates_str[i]);}
-        board.possibleMoves = coordinates_int;     // pass the possible moves to the possibleMoves array in chess class
-        for (int i = 0; i < arraySize; i++) {
-            int x = coordinates_int[i] / 10; 
-            int y = coordinates_int[i] % 10;
+    public static void drawPossibleMoves(int[] possibleMoves) {
+        for (int i = 0; i < board.possibleMoves.length; i++) {
+            int x = board.possibleMoves[i] / 10; 
+            int y = board.possibleMoves[i] % 10;
             if (board.isEmpty(x, y)) {drawCircle(x, y);}
             else                     {drawTakingPieceCircle(x, y);}
         }
         drawPieces();
+    }
+    
+    public static void drawMoveMade() {
+        Color colour1 = null;
+        Color colour2 = null;
+        if (board.getTileColour(board.pieceSelectedCoordinate[0], board.pieceSelectedCoordinate[1]) == TileColour.WHITE) 
+             {colour1 = legal_dg;}
+        else {colour1 = legal_c; }
+        if (board.getTileColour(board.pieceMovedCoordinate[0],    board.pieceMovedCoordinate[1])    == TileColour.WHITE) 
+             {colour2 = legal_dg;}
+        else {colour2 = legal_c; }
+        drawTile(board.pieceSelectedCoordinate[0], board.pieceSelectedCoordinate[1], colour1);
+        drawTile(board.pieceMovedCoordinate[0],    board.pieceMovedCoordinate[1],    colour2);
     }
     
     private static void drawTile(int x, int y, Color colour) {
