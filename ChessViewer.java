@@ -43,8 +43,8 @@ public class ChessViewer implements MouseListener
     private static void drawGrid() {
         for (int i = 0; i < size; i++)
             for (int j = 0; j < size; j++) {
-                if (board.getTileColour(i, j) == TileColour.WHITE) drawTile(i, j, cream);
-                if (board.getTileColour(i, j) == TileColour.BLACK) drawTile(i, j, brown);
+                if (board.getTileColour(i, j) == TileColour.WHITE) {drawTile(i, j, cream);}
+                if (board.getTileColour(i, j) == TileColour.BLACK) {drawTile(i, j, brown);}
             }
     }
         
@@ -54,7 +54,7 @@ public class ChessViewer implements MouseListener
                 if (board.isEmpty(i, j)) {continue;}
                 Color colour = null;
                 String piece = board.getPiece(i, j).toLowerCase();
-                if (board.pieceColour(i, j).equals("WHITE")) {colour = w;} 
+                if (board.pieceColour(i, j).equals("WHITE")) {colour = w;}
                 else                                         {colour = b;}
                 drawPiece(pieceString.get(piece), i, j, colour);
             }
@@ -65,7 +65,7 @@ public class ChessViewer implements MouseListener
             int x = board.possibleMoves[i] / 10; 
             int y = board.possibleMoves[i] % 10;
             if (board.isEmpty(x, y)) {drawCircle(x, y);}
-            else                     {drawTakingPieceCircle(x, y);}
+            else                     {drawTakingCircle(x, y);}
         }
         drawPieces();
     }
@@ -94,7 +94,7 @@ public class ChessViewer implements MouseListener
         sc.drawDisc(cell * x + cell / 2, cell * y + cell / 2, 17, colour);
     }
     
-    public static void drawTakingPieceCircle(int x, int y) {
+    public static void drawTakingCircle(int x, int y) {
         Color colour1 = null;
         Color colour2 = null;
         if (board.getTileColour(x, y) == TileColour.WHITE) {colour1 = legal_dg; colour2 = cream;}
@@ -108,13 +108,13 @@ public class ChessViewer implements MouseListener
     }
 
     public void leftClick(int x, int y) {
-        if (board.isLegal(x, y)) board.leftClick(x, y);
+        if (board.isLegal(x, y)) {board.leftClick(x, y);}
     }
     
     public void mousePressed(MouseEvent e) {
         if (0 <= e.getX() && e.getX() < 800 &&
             0 <= e.getY() && e.getY() < 800)
-            leftClick(e.getX() / cell, e.getY() / cell);
+            {leftClick(e.getX() / cell, e.getY() / cell);}
     }
     
     public void mouseClicked(MouseEvent e) {}

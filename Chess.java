@@ -87,16 +87,6 @@ public class Chess
         return board[x][y] == Pieces.EMPTY;
     }
     
-    public boolean isBlocked(int x, int y) {
-        if (x == pieceSelectedCoordinate[0]) {
-            for (int i = 0; i < 8; i++) {
-                
-            }
-        }
-        
-        return true;
-    }
-    
     public boolean isWhite(int x, int y) {
         return pieceColour(x, y).equals("WHITE");
     }
@@ -152,7 +142,7 @@ public class Chess
         String piece = getPiece(x, y);
         if (piece.equals("KING"))   {}
         if (piece.equals("QUEEN"))  {}
-        if (piece.equals("BISHOP")) {}
+        if (piece.equals("BISHOP")) {bishop(x, y);}
         if (piece.equals("KNIGHT")) {knight(x, y);}
         if (piece.equals("CASTLE")) {castle(x, y);}
         if (piece.equals("PAWN"))   {pawn(x, y);}            
@@ -205,6 +195,21 @@ public class Chess
             int y1 = y + ds[1];
             if (isLegal(x1, y1))
                 if (canTakePiece(x1, y1) || isEmpty(x1, y1)) moves += x1 + "" + y1 + " ";
+        }
+        possibleMoves(moves);
+    }
+    
+    public void bishop(int x, int y) {
+        String moves = "";
+        for (int[] ds : new int[][] {{-1,-1},{-1, 1},{1, 1},{1,-1}}) {
+            int x1 = x + ds[0];
+            int y1 = y + ds[1];
+            while (isLegal(x1, y1)) {
+                if (canTakePiece(x1, y1) || isEmpty(x1, y1))      moves += x1 + "" + y1 + " ";
+                if (canTakePiece(x1, y1) || isSameColour(x1, y1)) break;
+                x1 += ds[0];
+                y1 += ds[1];
+            }
         }
         possibleMoves(moves);
     }
