@@ -8,15 +8,25 @@ public class Chess
     public int[] pieceSelectedCoordinate;
     public int[] pieceMovedCoordinate;
     public int[] possibleMoves;
+    private Pieces[] scoreBoardWhite;
+    private Pieces[] scoreBoardBlack;
     private Pieces selectedPiece;
     private Pieces[][] board;
     public TileColour[][] tileColour;
+    private boolean[][] whiteAttacking;
+    private boolean[][] blackAttacking;
     private String currentTurn;
+    private int piecesTakenWhite = 0;
+    private int piecesTakenBlack = 0;
 
     public Chess()
     {
-        board      = new Pieces    [size][size];
-        tileColour = new TileColour[size][size];
+        board       = new Pieces    [size][size];
+        tileColour  = new TileColour[size][size];
+        whiteAttacking = new boolean[size][size];
+        blackAttacking = new boolean[size][size];
+        scoreBoardWhite = new Pieces[16];
+        scoreBoardBlack = new Pieces[16];
         pieceSelectedCoordinate = new int[2];
         pieceMovedCoordinate    = new int[2];
         selectedPiece   = null;
@@ -57,6 +67,8 @@ public class Chess
                     j % 2 == 1 && i % 2 == 1) {tileColour[i][j] = TileColour.WHITE;}
                 else                          {tileColour[i][j] = TileColour.BLACK;}
             }
+            
+        //Scoreboard
     }
     
     public boolean isLegal(int k) {
@@ -70,6 +82,14 @@ public class Chess
     public Pieces getBoard(int x, int y) {
         return board[x][y];
     }
+    
+    public Pieces getScoreBoardWhite(int x) {
+        return scoreBoardWhite[x];
+    }
+    public Pieces getScoreBoardBlack(int x) {
+        return scoreBoardBlack[x];
+    }
+    
     
     public TileColour getTileColour(int x, int y) {
         return tileColour[x][y];
@@ -91,6 +111,19 @@ public class Chess
         return pieceColour(x, y).equals("WHITE");
     }
     
+    private void setupWhiteAttacking() {
+        
+    }
+    
+    private void setupBlackAttacking() {
+        
+    }
+    
+    public boolean isCheck(int x, int y) {
+        
+        return true;
+    }
+    
     public boolean canTakePiece(int x, int y) {
         if (isEmpty(x, y)) return false;
         else               return !pieceColour(pieceSelectedCoordinate[0], pieceSelectedCoordinate[1]).equals(pieceColour(x, y));
@@ -106,6 +139,10 @@ public class Chess
     }
     
     public void movePiece(int x1, int y1, int x2, int y2) {
+        if (board[x2][y2] != Pieces.EMPTY && isWhite(x2,y2) == false) {scoreBoardWhite[piecesTakenWhite] = board[x2][y2]; piecesTakenWhite += 1;}
+        if (board[x2][y2] != Pieces.EMPTY && isWhite(x2,y2) == true) {scoreBoardBlack[piecesTakenBlack] = board[x2][y2]; piecesTakenBlack += 1;}
+        System.out.println(scoreBoardBlack);
+ 
         board[x1][y1] = Pieces.EMPTY;
         board[x2][y2] = selectedPiece;
         changeTurn();
@@ -140,8 +177,8 @@ public class Chess
         this.pieceSelectedCoordinate[0] = x; 
         this.pieceSelectedCoordinate[1] = y;
         String piece = getPiece(x, y);
-        if (piece.equals("KING"))   {}
-        if (piece.equals("QUEEN"))  {}
+        if (piece.equals("KING"))   {king(x, y);}
+        if (piece.equals("QUEEN"))  {queen(x, y);}
         if (piece.equals("BISHOP")) {bishop(x, y);}
         if (piece.equals("KNIGHT")) {knight(x, y);}
         if (piece.equals("CASTLE")) {castle(x, y);}
@@ -210,6 +247,32 @@ public class Chess
                 x1 += ds[0];
                 y1 += ds[1];
             }
+        }
+        possibleMoves(moves);
+    }
+    
+    public void queen(int x, int y) {
+        String moves = "";
+        for (int[] ds : new int[][] {{-1,-1},{-1, 1},{1, 1},{1,-1},{0,-1},{0,1},{-1,0},{1,0}}) {
+            int x1 = x + ds[0];
+            int y1 = y + ds[1];
+            while (isLegal(x1, y1)) {
+                if (canTakePiece(x1, y1) || isEmpty(x1, y1))      moves += x1 + "" + y1 + " ";
+                if (canTakePiece(x1, y1) || isSameColour(x1, y1)) break;
+                x1 += ds[0];
+                y1 += ds[1];
+            }
+        }
+        possibleMoves(moves);
+    }
+    
+    public void king(int x, int y) {
+        String moves = "";
+        for (int[] ds : new int[][] {{-1,-1},{-1, 1},{1, 1},{1,-1},{0,-1},{0,1},{-1,0},{1,0}}) {
+            int x1 = x + ds[0];
+            int y1 = y + ds[1];
+            if (isLegal(x1, y1)) 
+                if (canTakePiece(x1, y1) || isEmpty(x1, y1)) moves += x1 + "" + y1 + " ";
         }
         possibleMoves(moves);
     }
