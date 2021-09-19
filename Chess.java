@@ -8,16 +8,12 @@ public class Chess
     public int[] pieceSelectedCoordinate;
     public int[] pieceMovedCoordinate;
     public int[] possibleMoves;
-    private Pieces[] scoreBoardWhite;
-    private Pieces[] scoreBoardBlack;
     private Pieces selectedPiece;
     private Pieces[][] board;
     public TileColour[][] tileColour;
     private boolean[][] whiteAttacking;
     private boolean[][] blackAttacking;
     private String currentTurn;
-    private int piecesTakenWhite = 0;
-    private int piecesTakenBlack = 0;
 
     public Chess()
     {
@@ -25,8 +21,6 @@ public class Chess
         tileColour  = new TileColour[size][size];
         whiteAttacking = new boolean[size][size];
         blackAttacking = new boolean[size][size];
-        scoreBoardWhite = new Pieces[16];
-        scoreBoardBlack = new Pieces[16];
         pieceSelectedCoordinate = new int[2];
         pieceMovedCoordinate    = new int[2];
         selectedPiece   = null;
@@ -67,8 +61,8 @@ public class Chess
                     j % 2 == 1 && i % 2 == 1) {tileColour[i][j] = TileColour.WHITE;}
                 else                          {tileColour[i][j] = TileColour.BLACK;}
             }
-            
-        //Scoreboard
+        // setup attacking arrays
+        setupAttackingArrays();
     }
     
     public boolean isLegal(int k) {
@@ -82,14 +76,6 @@ public class Chess
     public Pieces getBoard(int x, int y) {
         return board[x][y];
     }
-    
-    public Pieces getScoreBoardWhite(int x) {
-        return scoreBoardWhite[x];
-    }
-    public Pieces getScoreBoardBlack(int x) {
-        return scoreBoardBlack[x];
-    }
-    
     
     public TileColour getTileColour(int x, int y) {
         return tileColour[x][y];
@@ -111,17 +97,74 @@ public class Chess
         return pieceColour(x, y).equals("WHITE");
     }
     
+    private void setupAttackingArrays() {
+        setupFalseInAttackingArrays();
+        setupWhiteAttacking();
+        setupBlackAttacking();       
+    }
+    
     private void setupWhiteAttacking() {
-        
+        for (int x = 0; x < size; x++)
+            for (int y = 0; y < size; y++) {
+                if (isEmpty(x, y))                     {continue;}
+                if (pieceColour(x, y).equals("BLACK")) {continue;}
+                String piece = getPiece(x, y);
+                this.possibleMoves = null;
+                if (piece.equals("KING"))   {king         (x, y);}
+                if (piece.equals("QUEEN"))  {queen        (x, y);}
+                if (piece.equals("BISHOP")) {bishop       (x, y);}
+                if (piece.equals("KNIGHT")) {knight       (x, y);}
+                if (piece.equals("CASTLE")) {castle       (x, y);}
+                if (piece.equals("PAWN"))   {pawnAttacking(x, y);}
+                if (possibleMoves == null)  {continue;}
+                this.pieceSelectedCoordinate[0] = x;
+                this.pieceSelectedCoordinate[1] = y;
+                for (int i = 0; i < possibleMoves.length; i++) {
+                    int x1 = possibleMoves[i] / 10; 
+                    int y1 = possibleMoves[i] % 10;
+                    whiteAttacking[x1][y1] = true;
+                }
+            }
     }
     
     private void setupBlackAttacking() {
-        
+        for (int x = 0; x < size; x++)
+            for (int y = 0; y < size; y++) {
+                if (isEmpty(x, y))                     {continue;}
+                if (pieceColour(x, y).equals("BLACK")) {continue;}
+                String piece = getPiece(x, y);
+                this.possibleMoves = null;
+                if (piece.equals("KING"))   {king         (x, y);}
+                if (piece.equals("QUEEN"))  {queen        (x, y);}
+                if (piece.equals("BISHOP")) {bishop       (x, y);}
+                if (piece.equals("KNIGHT")) {knight       (x, y);}
+                if (piece.equals("CASTLE")) {castle       (x, y);}
+                if (piece.equals("PAWN"))   {pawnAttacking(x, y);}
+                if (possibleMoves == null)  {continue;}
+                this.pieceSelectedCoordinate[0] = x;
+                this.pieceSelectedCoordinate[1] = y;                
+                for (int i = 0; i < possibleMoves.length; i++) {
+                    int x1 = possibleMoves[i] / 10; 
+                    int y1 = possibleMoves[i] % 10;
+                    blackAttacking[x1][y1] = true;
+                }
+            }
     }
     
-    public boolean isCheck(int x, int y) {
-        
-        return true;
+    private void setupFalseInAttackingArrays() {
+        for (int i = 0; i < size; i++)
+            for (int j = 0; j < size; j++) {
+                whiteAttacking[i][j] = false;
+                blackAttacking[i][j] = false;
+            }
+    }
+    
+    public boolean isBlackInCheck(int x, int y) {
+        return whiteAttacking[x][y];
+    }
+    
+    public boolean isWhiteInCheck(int x, int y) {
+        return blackAttacking[x][y];
     }
     
     public boolean canTakePiece(int x, int y) {
@@ -139,15 +182,12 @@ public class Chess
     }
     
     public void movePiece(int x1, int y1, int x2, int y2) {
-        if (board[x2][y2] != Pieces.EMPTY && isWhite(x2,y2) == false) {scoreBoardWhite[piecesTakenWhite] = board[x2][y2]; piecesTakenWhite += 1;}
-        if (board[x2][y2] != Pieces.EMPTY && isWhite(x2,y2) == true) {scoreBoardBlack[piecesTakenBlack] = board[x2][y2]; piecesTakenBlack += 1;}
-        System.out.println(scoreBoardBlack);
- 
         board[x1][y1] = Pieces.EMPTY;
         board[x2][y2] = selectedPiece;
         changeTurn();
         this.pieceMovedCoordinate[0] = x2;
         this.pieceMovedCoordinate[1] = y2;
+        setupAttackingArrays();
         viewer.displayBoard();
         viewer.drawMoveMade();
         viewer.drawPieces();
@@ -182,7 +222,8 @@ public class Chess
         if (piece.equals("BISHOP")) {bishop(x, y);}
         if (piece.equals("KNIGHT")) {knight(x, y);}
         if (piece.equals("CASTLE")) {castle(x, y);}
-        if (piece.equals("PAWN"))   {pawn(x, y);}            
+        if (piece.equals("PAWN"))   {pawn(x, y);}   
+        viewer.drawPossibleMoves(possibleMoves);
     }
     
     private void possibleMoves(String moves) {
@@ -193,7 +234,6 @@ public class Chess
         for (int i = 0; i < arraySize; i++) 
             {coordinates_int[i] = Integer.parseInt(coordinates_str[i]);}
         this.possibleMoves = coordinates_int;
-        viewer.drawPossibleMoves(coordinates_int);
     }
     
     public void pawn(int x, int y) {
@@ -209,6 +249,19 @@ public class Chess
                                moves += (x + z) + "" + (y - z)       + " "; // forward right
         if (isEmpty(x, y - z) && y == 6 || y == 1 && isEmpty(x, y - z) && isEmpty(x, y - (2 * z)))
                                moves +=  x      + "" + (y - (2 * z)) + " "; // jump at start
+        possibleMoves(moves);
+    }
+    
+    public void pawnAttacking(int x, int y) {
+        int z;
+        String moves = "";
+        String oppositeColour = "";        
+        if (isWhite(x, y)) z =  1;
+        else               z = -1;
+        if (isLegal(x - z, y - z) && canTakePiece(x - z, y - z))  
+                               moves += (x - z) + "" + (y - z)       + " "; // forward left
+        if (isLegal(x + z, y - z) && canTakePiece(x + z, y - z))  
+                               moves += (x + z) + "" + (y - z)       + " "; // forward right
         possibleMoves(moves);
     }
     
@@ -266,13 +319,17 @@ public class Chess
         possibleMoves(moves);
     }
     
-    public void king(int x, int y) {
+    public void king(int x, int y) {        
         String moves = "";
-        for (int[] ds : new int[][] {{-1,-1},{-1, 1},{1, 1},{1,-1},{0,-1},{0,1},{-1,0},{1,0}}) {
+        String colour = pieceColour(x, y);
+        for (int[] ds : new int[][] {{-1,-1},{-1, 1},{1, 1},{1,-1},{0,-1},{0, 1},{-1, 0},{1, 0}}) {
             int x1 = x + ds[0];
             int y1 = y + ds[1];
-            if (isLegal(x1, y1)) 
-                if (canTakePiece(x1, y1) || isEmpty(x1, y1)) moves += x1 + "" + y1 + " ";
+            if (isLegal(x1, y1)) {
+                if (colour.equals("WHITE") && isWhiteInCheck(x1, y1)) continue;
+                if (colour.equals("BLACK") && isBlackInCheck(x1, y1)) continue;                
+                if (canTakePiece(x1, y1) || isEmpty(x1, y1))          moves += x1 + "" + y1 + " ";
+            }
         }
         possibleMoves(moves);
     }

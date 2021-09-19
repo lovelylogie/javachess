@@ -17,22 +17,19 @@ public class ChessViewer implements MouseListener
     private static Color legal_dg  = new Color(144,92,40);  // move spaces
     private static Color w         = Color.white;
     private static Color b         = Color.black;
-    private static Color g         = Color.gray;
     
     // piece unicodes
-    private static String king   = "\u265A"; 
-    private static String queen  = "\u265B"; 
-    private static String castle = "\u265C"; 
-    private static String bishop = "\u265D"; 
-    private static String knight = "\u265E"; 
-    private static String pawn   = "\u265F";
-    
-    // scoreboard vairables
-    private static int NumberPiecesWhite = 1;
-    private int NumberPiecesBlack = 1;
+    private static Map<String, String> pieceString = Map.of(
+    "king",   "\u265A",
+    "queen",  "\u265B",
+    "castle", "\u265C",
+    "bishop", "\u265D",
+    "knight", "\u265E",
+    "pawn",   "\u265F"
+    );
     
     public ChessViewer() {
-        sc = new SimpleCanvas("Chess", 800, 950, g);
+        sc = new SimpleCanvas("Chess", 800, 800, Color.white);
         sc.setFont(new Font("Times", 1, 90));
         sc.addMouseListener(this);
         displayBoard();
@@ -41,7 +38,6 @@ public class ChessViewer implements MouseListener
     public static void displayBoard() {
         drawGrid();
         drawPieces();
-        drawScoreboard();
     }
     
     private static void drawGrid() {
@@ -53,56 +49,17 @@ public class ChessViewer implements MouseListener
     }
         
     public static void drawPieces() {
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++)
             for (int j = 0; j < size; j++) {
-                // black pieces
-                Pieces black = board.getBoard(i, j);
-                if (black == Pieces.EMPTY)        {continue;}
-                if (black == Pieces.BLACK_KING)   {drawPiece(king,   i, j, b); continue;}
-                if (black == Pieces.BLACK_QUEEN)  {drawPiece(queen,  i, j, b); continue;}
-                if (black == Pieces.BLACK_BISHOP) {drawPiece(bishop, i, j, b); continue;}
-                if (black == Pieces.BLACK_KNIGHT) {drawPiece(knight, i, j, b); continue;}
-                if (black == Pieces.BLACK_CASTLE) {drawPiece(castle, i, j, b); continue;}
-                if (black == Pieces.BLACK_PAWN)   {drawPiece(pawn,   i, j, b); continue;}
+                if (board.isEmpty(i, j)) {continue;}
+                Color colour = null;
+                String piece = board.getPiece(i, j).toLowerCase();
+                if (board.pieceColour(i, j).equals("WHITE")) {colour = w;}
+                else                                         {colour = b;}
+                drawPiece(pieceString.get(piece), i, j, colour);
             }
-            for (int j = 0; j < size; j++) {
-                // white pieces
-                Pieces white = board.getBoard(i, j);
-                if (white == Pieces.EMPTY)        {continue;}
-                if (white == Pieces.WHITE_KING)   {drawPiece(king,   i, j, w); continue;}
-                if (white == Pieces.WHITE_QUEEN)  {drawPiece(queen,  i, j, w); continue;}
-                if (white == Pieces.WHITE_BISHOP) {drawPiece(bishop, i, j, w); continue;}
-                if (white == Pieces.WHITE_KNIGHT) {drawPiece(knight, i, j, w); continue;}
-                if (white == Pieces.WHITE_CASTLE) {drawPiece(castle, i, j, w); continue;}
-                if (white == Pieces.WHITE_PAWN)   {drawPiece(pawn,   i, j, w); continue;}
-            }
-        }
     }
     
-    private static void drawScoreboard() {
-        sc.setFont(new Font("Times", 1, 20));
-        sc.drawString("White",  50, 840, w);
-        sc.drawString("Black", 520,840, b);
-        for (int i = 0; i < 16; i++) {  
-            Pieces black = board.getScoreBoardWhite(i);
-                if (black == Pieces.BLACK_KING)   {drawScorePieceWhite(king,   i); continue;}
-                if (black == Pieces.BLACK_QUEEN)  {drawScorePieceWhite(queen,  i); continue;}
-                if (black == Pieces.BLACK_BISHOP) {drawScorePieceWhite(bishop, i); continue;}
-                if (black == Pieces.BLACK_KNIGHT) {drawScorePieceWhite(knight, i); continue;}
-                if (black == Pieces.BLACK_CASTLE) {drawScorePieceWhite(castle, i); continue;}
-                if (black == Pieces.BLACK_PAWN)   {drawScorePieceWhite(pawn,   i); continue;}
-    }
-    for (int i = 0; i < 16; i++) {  
-            Pieces white = board.getScoreBoardBlack(i);
-                if (white == Pieces.WHITE_KING)   {drawScorePieceBlack(king,   i); continue;}
-                if (white == Pieces.WHITE_QUEEN)  {drawScorePieceBlack(queen,  i); continue;}
-                if (white == Pieces.WHITE_BISHOP) {drawScorePieceBlack(bishop, i); continue;}
-                if (white == Pieces.WHITE_KNIGHT) {drawScorePieceBlack(knight, i); continue;}
-                if (white == Pieces.WHITE_CASTLE) {drawScorePieceBlack(castle, i); continue;}
-                if (white == Pieces.WHITE_PAWN)   {drawScorePieceBlack(pawn,   i); continue;}
-    }
-        sc.setFont(new Font("Times", 1, 90));
-    }
     public static void drawPossibleMoves(int[] possibleMoves) {
         for (int i = 0; i < board.possibleMoves.length; i++) {
             int x = board.possibleMoves[i] / 10; 
@@ -149,14 +106,7 @@ public class ChessViewer implements MouseListener
     private static void drawPiece(String piece, int x, int y, Color colour) {
         drawCenteredString(piece, cell * x + cell / 2, cell * y + cell / 2 + 7, colour);
     }
-    
-    private static void drawScorePieceWhite(String piece, int x) {
-        sc.drawString(piece, 15 * x+ 15 / 2 + 30, 880 , w);
-    }
-    private static void drawScorePieceBlack(String piece, int x) {
-        sc.drawString(piece, 15 * x+ 15 / 2 + 500, 880 , b);
-    }
-    
+
     public void leftClick(int x, int y) {
         if (board.isLegal(x, y)) {board.leftClick(x, y);}
     }
@@ -176,11 +126,11 @@ public class ChessViewer implements MouseListener
      * Draws a string with the centre of this string
      * at the input coordinates
      */
-    public static void drawCenteredString(String text, int x, int y, Color Colouw) {
+    public static void drawCenteredString(String text, int x, int y, Color colour) {
         FontRenderContext frc = new FontRenderContext(null,true,true);
         Rectangle2D size = sc.getFont().getStringBounds(text, frc);
         int fontX = x - (int)size.getWidth() / 2;
         int fontY = y + (int)size.getHeight() / 4;
-        sc.drawString(text,fontX,fontY,Colouw);
+        sc.drawString(text,fontX,fontY,colour);
     }
     }
