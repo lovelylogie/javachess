@@ -1,8 +1,6 @@
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*; 
-import java.awt.geom.Rectangle2D;
-import java.awt.font.FontRenderContext;
 
 public class ChessViewer implements MouseListener
 {
@@ -15,14 +13,14 @@ public class ChessViewer implements MouseListener
     private static Color brown     = new Color(254,206,158);
     private static Color legal_c   = new Color(199,145,95); // colours for circles drawn on legal
     private static Color legal_dg  = new Color(144,92,40);  // move spaces
-    private static Color w         = Color.white;
-    private static Color b         = Color.black;
+    private static Color white     = Color.white;
+    private static Color black     = Color.black;
     
     // piece unicodes
     private static Map<String, String> pieceString = Map.of(
     "king",   "\u265A",
     "queen",  "\u265B",
-    "castle", "\u265C",
+    "rook",   "\u265C",
     "bishop", "\u265D",
     "knight", "\u265E",
     "pawn",   "\u265F"
@@ -41,29 +39,29 @@ public class ChessViewer implements MouseListener
     }
     
     private static void drawGrid() {
-        for (int i = 0; i < size; i++)
-            for (int j = 0; j < size; j++) {
-                if (board.getTileColour(i, j) == TileColour.WHITE) {drawTile(i, j, cream);}
-                if (board.getTileColour(i, j) == TileColour.BLACK) {drawTile(i, j, brown);}
+        for (int x = 0; x < size; x++)
+            for (int y = 0; y < size; y++) {
+                if (board.getTileColour(x, y) == TileColour.WHITE) {drawTile(x, y, cream);}
+                if (board.getTileColour(x, y) == TileColour.BLACK) {drawTile(x, y, brown);}
             }
     }
         
     public static void drawPieces() {
-        for (int i = 0; i < size; i++)
-            for (int j = 0; j < size; j++) {
-                if (board.isEmpty(i, j)) {continue;}
-                Color colour = null;
-                String piece = board.getPiece(i, j).toLowerCase();
-                if (board.pieceColour(i, j).equals("WHITE")) {colour = w;}
-                else                                         {colour = b;}
-                drawPiece(pieceString.get(piece), i, j, colour);
+        for (int x = 0; x < size; x++)
+            for (int y = 0; y < size; y++) {
+                if (board.isEmpty(x, y)) {continue;}
+                Color colour = Color.white;
+                String piece = board.getPieceName(x, y).name().toLowerCase();
+                if (board.pieceColour(x, y) == pieceColour.WHITE) {colour = white;}
+                else                                              {colour = black;}
+                drawPiece(pieceString.get(piece), x, y, colour);
             }
     }
     
     public static void drawPossibleMoves(int[] possibleMoves) {
-        for (int i = 0; i < board.possibleMoves.length; i++) {
-            int x = board.possibleMoves[i] / 10; 
-            int y = board.possibleMoves[i] % 10;
+        for (int i = 0; i < board.possibleMoves().length; i++) {
+            int x = board.possibleMoves()[i] / 10; 
+            int y = board.possibleMoves()[i] % 10;
             if (board.isEmpty(x, y)) {drawCircle(x, y);}
             else                     {drawTakingCircle(x, y);}
         }
@@ -73,14 +71,14 @@ public class ChessViewer implements MouseListener
     public static void drawMoveMade() {
         Color colour1 = null;
         Color colour2 = null;
-        if (board.getTileColour(board.pieceSelectedCoordinate[0], board.pieceSelectedCoordinate[1]) == TileColour.WHITE) 
+        if (board.getTileColour(board.pieceSelectedX(), board.pieceSelectedY()) == TileColour.WHITE) 
              {colour1 = legal_dg;}
         else {colour1 = legal_c; }
-        if (board.getTileColour(board.pieceMovedCoordinate[0],    board.pieceMovedCoordinate[1])    == TileColour.WHITE) 
+        if (board.getTileColour(board.pieceMovedX(),    board.pieceMovedY())    == TileColour.WHITE) 
              {colour2 = legal_dg;}
         else {colour2 = legal_c; }
-        drawTile(board.pieceSelectedCoordinate[0], board.pieceSelectedCoordinate[1], colour1);
-        drawTile(board.pieceMovedCoordinate[0],    board.pieceMovedCoordinate[1],    colour2);
+        drawTile(board.pieceSelectedX(), board.pieceSelectedY(), colour1);
+        drawTile(board.pieceMovedX(),    board.pieceMovedY(),    colour2);
     }
     
     private static void drawTile(int x, int y, Color colour) {
@@ -104,7 +102,7 @@ public class ChessViewer implements MouseListener
     }
 
     private static void drawPiece(String piece, int x, int y, Color colour) {
-        drawCenteredString(piece, cell * x + cell / 2, cell * y + cell / 2 + 7, colour);
+        sc.drawCenteredString(piece, cell * x + cell / 2, cell * y + cell / 2 + 7, colour);
     }
 
     public void leftClick(int x, int y) {
@@ -121,16 +119,4 @@ public class ChessViewer implements MouseListener
     public void mouseReleased(MouseEvent e) {}
     public void mouseEntered(MouseEvent e) {}
     public void mouseExited(MouseEvent e) {}
-    
-     /**
-     * Draws a string with the centre of this string
-     * at the input coordinates
-     */
-    public static void drawCenteredString(String text, int x, int y, Color colour) {
-        FontRenderContext frc = new FontRenderContext(null,true,true);
-        Rectangle2D size = sc.getFont().getStringBounds(text, frc);
-        int fontX = x - (int)size.getWidth() / 2;
-        int fontY = y + (int)size.getHeight() / 4;
-        sc.drawString(text,fontX,fontY,colour);
-    }
     }
