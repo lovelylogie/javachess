@@ -77,6 +77,7 @@ public class Chess
         return isPieceSelected;
     }
     
+    // new methods I am working on for the rook (isBlockedX & isBlockedY)
     public boolean isBlockedX(int x, int y) {
         boolean b1 = false;
         int z = 0;
@@ -239,19 +240,6 @@ public class Chess
                                moves += (x + z) + "" + (y - z)       + " "; // forward right
         if (isEmpty(x, y - z) && y == 6 || y == 1 && isEmpty(x, y - z) && isEmpty(x, y - (2 * z)))
                                moves +=  x      + "" + (y - (2 * z)) + " "; // jump at start
-        possibleMoves(moves);
-    }
-    
-    public void pawnAttacking(int x, int y) {
-        int z;
-        String moves = "";
-        String oppositeColour = "";        
-        if (isWhite(x, y)) z =  1;
-        else               z = -1;
-        if (isLegal(x - z, y - z) && canTakePiece(x - z, y - z))  
-                               moves += (x - z) + "" + (y - z)       + " "; // forward left
-        if (isLegal(x + z, y - z) && canTakePiece(x + z, y - z))  
-                               moves += (x + z) + "" + (y - z)       + " "; // forward right
         possibleMoves(moves);
     }
     
