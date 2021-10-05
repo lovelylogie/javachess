@@ -32,7 +32,7 @@ public class ChessViewer implements MouseListener
         sc.addMouseListener(this);
         displayBoard();
     }
-    
+
     public static void displayBoard() {
         drawGrid();
         drawPieces();
@@ -52,8 +52,9 @@ public class ChessViewer implements MouseListener
                 if (board.isEmpty(x, y)) {continue;}
                 Color colour = Color.white;
                 String piece = board.getPieceName(x, y).name().toLowerCase();
-                if (board.pieceColour(x, y) == pieceColour.WHITE) {colour = white;}
-                else                                              {colour = black;}
+                colour = (board.pieceColour(x, y) == pieceColour.WHITE) ? white : black;
+                    // if (board.pieceColour(x, y) == pieceColour.WHITE) {colour = white;}
+                    // else                                              {colour = black;}
                 drawPiece(pieceString.get(piece), x, y, colour);
             }
     }

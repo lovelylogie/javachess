@@ -9,6 +9,8 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.font.FontRenderContext;
+import java.awt.geom.Rectangle2D;
 
 public class SimpleCanvas
 {
@@ -22,20 +24,27 @@ public class SimpleCanvas
      * Creates and displays a SimpleCanvas of the specified size and background 
      */
     public SimpleCanvas(String title, int width, int height, Color bgColour) {
+        
         frame = new JFrame();
         canvas = new CanvasPane();
+        
         frame.setContentPane(canvas);
         frame.setTitle(title);
         canvas.setPreferredSize(new Dimension(width,height));
         frame.pack();
+        
         Dimension size = canvas.getSize();
         canvasImage = canvas.createImage(size.width,size.height);
         graphic = (Graphics2D) canvasImage.getGraphics();
         graphic.setColor(bgColour);
         graphic.fillRect(0,0,size.width,size.height);
         graphic.setColor(Color.black);
+
+	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // terminate the process
         frame.setVisible(true);
+        
         this.autoRepaint = true;
+
     }
     
    /**
@@ -110,7 +119,18 @@ public class SimpleCanvas
     public void drawString(int n, int x, int y, Color c) {
         drawString(n + "", x, y, c);
     }
-    
+    /**
+     * Draws a string with the centre of this string
+     * at the input coordinates
+     */
+    public void drawCenteredString(String text, int x, int y, Color Colour) {
+        FontRenderContext frc = new FontRenderContext(null,true,true);
+        Rectangle2D size = getFont().getStringBounds(text, frc);
+        int fontX = x - (int)size.getWidth() / 2;
+        int fontY = y + (int)size.getHeight() / 4;
+        drawString(text,fontX,fontY,Colour);
+    }
+
     /** 
      * Changes the colour for subsequent drawing on this SimpleCanvas.
      */
