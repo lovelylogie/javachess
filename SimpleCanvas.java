@@ -194,6 +194,14 @@ public class SimpleCanvas
     }
 
     /**
+     * why wont this shit work lol XD
+     */
+    public void addKeyListener(KeyListener kl) {
+        canvas.addKeyListener(kl);
+        canvas.setFocusable(true);
+    }
+
+    /**
      * Gets the underlying JFrame that is associated with the window.
      */
     public JFrame getFrame() {
@@ -206,6 +214,7 @@ public class SimpleCanvas
     public Graphics2D getGraphic() {
         return graphic;
     }
+
 
     class CanvasPane extends JPanel {
         public void paint(Graphics g) {

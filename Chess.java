@@ -1,5 +1,6 @@
 package com.company;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,6 +14,8 @@ public class Chess
     private final int size = 8;
     private boolean isPieceSelected;
     private boolean gameOver;
+    private boolean orientation; // if true, white is bottom
+    private boolean isPromotion;
     private int movesMade;
     private int pieceSelectedX;
     private int pieceSelectedY;
@@ -21,6 +24,9 @@ public class Chess
     private int pieceMovedX2;
     private int pieceMovedY2;
     private int checkSquare;
+    private int whiteKingLoc;
+    private int blackKingLoc;
+    private int promotionSquare;
     private String afterSpaceString;
     private List<Integer> possibleMoves;
     private Piece selectedPiece;
@@ -47,6 +53,7 @@ public class Chess
         squaresAttacked = new pieceColour[size][size];
         selectedPiece = null;
         isPieceSelected = false;
+        isPromotion = false;
         currentTurn = white;
         checkSquare = -1;
         fenToBoard(fen);
@@ -55,8 +62,8 @@ public class Chess
             for (int y = 0; y < size; y++)
                 tileColour[x][y] = (x % 2 == 0 && y % 2 == 0 || x % 2 == 1 && y % 2 == 1) ?
                         TileColour.BLACK : TileColour.WHITE;
-        resetAttackingArray();
-        setupAttackingArray();
+        attackingArray();
+        getKingLocations();
         isCheck();
         viewer = new ChessViewer(this);
     }
@@ -99,6 +106,11 @@ public class Chess
         }
         board = boardCopy.clone();
         currentTurn = (afterSpaceString.charAt(1) == 'w') ? white : black;
+        orientation = afterSpaceString.charAt(1) == 'w';
+        if (!orientation) {
+            flip();
+            orientation = false;
+        }
     }
 
     public Piece charToPiece(char c) {
@@ -114,17 +126,17 @@ public class Chess
         return new Piece(name, colour);
     }
 
-    public void resetAttackingArray() {
+    // sets up a 2d array that shows which squares are being attacked by which side (either black or white)
+    public void attackingArray() {
+        // clear the array first
         for (int x = 0; x < size; x++) {
             for (int y = 0; y < size; y++) {
                 squaresAttacked[x][y] = pieceColour.EMPTY;
             }
         }
-    }
-
-    public void setupAttackingArray() {
+        // then set it up
         for (int x = 0; x < size; x++) {
-            for (int y = 0; y < size; y++) {
+            for (int y = 0; y < size; y++) { // is there a way to make this cleaner?
                 if (isEmpty(x, y)) {
                     continue;
                 }
@@ -155,6 +167,8 @@ public class Chess
         }
     }
 
+    // converts list of integer into elements of spaceAttacked array
+    // i know i know, using pieceColour.BOTH is gross. cbf changing it though haha
     public void listToAttackArray(List<Integer> moves, int x, int y) {
         if (moves.isEmpty()) return;
         pieceColour colour = (getPiece(x, y).getColour() == white) ? pieceColour.WHITE : pieceColour.BLACK;
@@ -171,8 +185,33 @@ public class Chess
         }
     }
 
+    public void getKingLocations() {
+        boolean foundKing = false;
+        search :
+        {
+            for (int x = 0; x < size; x++)
+                for (int y = 0; y < size; y++) {
+                    if (getPieceName(x, y) == king) {
+                        if (getPiece(x, y).getColour() == white)
+                             whiteKingLoc = x * 10 + y;
+                        else blackKingLoc = x * 10 + y;
+                        if (foundKing) break search;
+                        foundKing = true;
+                    }
+                }
+        }
+    }
+
+    public Piece emptyPiece() {
+        return new Piece(pieceName.EMPTY, pieceColour.EMPTY);
+    }
+
     public pieceColour getAttackArray(int x, int y) {
         return squaresAttacked[x][y];
+    }
+
+    public boolean getOrientation() {
+        return orientation;
     }
 
     public String getCurrentTurn() {
@@ -256,6 +295,10 @@ public class Chess
         return (colour == pieceColour.WHITE) ? pieceColour.BLACK : pieceColour. WHITE;
     }
 
+    public pieceColour oppositeColourGivenPiece(Piece piece) {
+        return oppositeColour(piece.getColour());
+    }
+
     public pieceName getPieceName(int x, int y) {
         return board[x][y].getName();
     }
@@ -289,28 +332,73 @@ public class Chess
         currentTurn = (currentTurn == white) ? black : white;
     }
 
-    public void leftClick(int x, int y) {
-        if (gameOver) return;
-        if (isPieceSelected) {
-            if (x != pieceSelectedX || y != pieceSelectedY)
-            {viewer.displayBoard();}
-            for (int i = 0; i < possibleMoves.size(); i++) {
-                int x_coordinate = possibleMoves.get(i) / 10;
-                int y_coordinate = possibleMoves.get(i) % 10;
-                if (x == x_coordinate && y == y_coordinate) {
-                    if (selectedPiece.getName() == king && isCastling(x, y)) castle(x, y);
-                    movePiece(pieceSelectedX, pieceSelectedY, x, y);
-                    this.isPieceSelected = false;
-                    return;
-                }
+    public void changeOrientation() {
+        orientation = !orientation;
+    }
+
+    public void flip() {
+        flipBoard();
+        flipAttackingArray();
+        flipPieceMoved();
+        flipCheckSquare();
+        changeOrientation();
+        getKingLocations();
+    }
+
+    public void flipBoard() {
+        for (int i = 0; i < size / 2; i++) {
+            for (int j = 0; j < size; j++) {
+                Piece temp = board[i][j];
+                board[i][j] = board[size - i - 1][size - j - 1];
+                board[size - i - 1][size - j - 1] = temp;
             }
         }
-        if (isEmpty(x, y)) return;
-        else if (!(pieceColour(x, y) == (currentTurn))) {
-            this.isPieceSelected = false;
-            viewer.displayBoard();
+    }
+
+    public void flipAttackingArray() {
+        for (int i = 0; i < size / 2; i++) {
+            for (int j = 0; j < size; j++) {
+                pieceColour temp = squaresAttacked[i][j];
+                squaresAttacked[i][j] = squaresAttacked[size - i - 1][size - j - 1];
+                squaresAttacked[size - i - 1][size - j - 1] = temp;
+            }
+        }
+    }
+
+    // might have to make pieceMoved an array or list cause this is kinda gross
+    public void flipPieceMoved() {
+        pieceMovedX1 = size - pieceMovedX1 - 1;
+        pieceMovedY1 = size - pieceMovedY1 - 1;
+        pieceMovedX2 = size - pieceMovedX2 - 1;
+        pieceMovedY2 = size - pieceMovedY2 - 1;
+    }
+
+    // same with checkSquare
+    public void flipCheckSquare() {
+        if (checkSquare == -1) return;
+        int x = checkSquare / 10;
+        int y = checkSquare % 10;
+        checkSquare = (size - x - 1) * 10 + size - y - 1;
+    }
+
+    public void leftClick(int x, int y) {
+        if (gameOver) return;
+        if (isPromotion) {
+            if (promote(x, y)) {
+                afterMove();
+                isPromotion = false;
+            }
             return;
         }
+        if (isPieceSelected) {
+            isPossibleMove(x, y);
+            if (!isPieceSelected) {
+                possibleMoves.clear();
+                return;
+            }
+            viewer.displayBoard();
+        }
+        if (isEmpty(x, y) || getPiece(x, y).getColour() != currentTurn) return;
         this.selectedPiece = getBoard(x, y);
         this.isPieceSelected = true;
         this.pieceSelectedX = x;
@@ -319,24 +407,96 @@ public class Chess
         viewer.drawPossibleMoves();
     }
 
+    public void isPossibleMove(int x, int y) {
+        for (int i = 0; i < possibleMoves.size(); i++) {
+            int x_coordinate = possibleMoves.get(i) / 10;
+            int y_coordinate = possibleMoves.get(i) % 10;
+            if (x == x_coordinate && y == y_coordinate) {
+                if (selectedPiece.getName() == king && isCastling(x, y)) castle(x, y);
+                movePiece(pieceSelectedX, pieceSelectedY, x, y);
+                this.isPieceSelected = false;
+                break;
+            }
+        }
+    }
+
+    private List<Integer> getPossibleMoves(int x, int y, pieceName name) {
+        List<Integer> moves = new ArrayList<>();
+        if (name == king)   {moves = king(x, y, false);}
+        if (name == queen)  {moves = queen(x, y, false);}
+        if (name == bishop) {moves = bishop(x, y, false);}
+        if (name == knight) {moves = knight(x, y, false);}
+        if (name == rook)   {moves = rook(x, y, false);}
+        if (name == pawn)   {moves = pawn(x, y, false);}
+        int checkSquareCopy = checkSquare;
+        for (int i = 0; i < moves.size(); i++) {
+            if (isCheck(x, y, moves.get(i) / 10, moves.get(i) % 10)) {
+                moves.remove(i);
+                i--;
+            }
+        }
+        attackingArray();
+        checkSquare = checkSquareCopy;
+        return moves;
+    }
+
     public void movePiece(int x1, int y1, int x2, int y2) {
-        board[x1][y1] = new Piece(pieceName.EMPTY, pieceColour.EMPTY);
+        board[x1][y1] = emptyPiece();
         board[x2][y2] = selectedPiece;
-        selectedPiece.pieceHasMoved();
-        changeTurn();
-        plusMove();
-        resetAttackingArray();
-        setupAttackingArray();
-        isCheck();
         this.pieceMovedX1 = x1;
         this.pieceMovedY1 = y1;
         this.pieceMovedX2 = x2;
         this.pieceMovedY2 = y2;
+        selectedPiece.pieceHasMoved();
+        if (selectedPiece.getName() == king) updateKingLocation(x2, y2);
+        if (selectedPiece.getName() == pawn)
+            if (y2 == 0 || y2 == 7)          pawnPromotion     (x2, y2);
+        if (!isPromotion) afterMove();
+    }
+
+    public void afterMove() {
+        changeTurn();
+        plusMove();
+        attackingArray();
+        isCheck();
         viewer.displayBoard();
         if (isMate()) {
-            viewer.drawGameOver();
+            if (isStaleMate()) {
+                viewer.drawStalemate();
+                gameOver = true;
+                return;
+            }
+            viewer.drawCheckmate();
             gameOver = true;
         }
+    }
+
+    public void pawnPromotion(int x, int y) {
+        isPromotion = true;
+        promotionSquare = x * 10 + y;
+        Color colour = (getPiece(x, y).getColour() == white) ? Color.white : Color.black;
+        viewer.drawPromotion(x, y, colour);
+    }
+
+    public boolean promote(int x, int y) {
+        boolean b = false;
+        int pieceX = promotionSquare / 10;
+        int pieceY = promotionSquare % 10;
+        pieceColour colour = (getPiece(pieceX, pieceY).getColour() == white) ? white : black;
+        if (x == promotionSquare / 10 && y < 4) {
+            b = true;
+            if (y == 0) board[pieceX][pieceY] = new Piece(pieceName.QUEEN, colour);
+            if (y == 1) board[pieceX][pieceY] = new Piece(pieceName.KNIGHT, colour);
+            if (y == 2) board[pieceX][pieceY] = new Piece(pieceName.ROOK, colour);
+            if (y == 3) board[pieceX][pieceY] = new Piece(pieceName.BISHOP, colour);
+        }
+        return b;
+    }
+
+    public void updateKingLocation(int x2, int y2) {
+        if (selectedPiece.getColour() == white)
+             whiteKingLoc = x2 * 10 + y2;
+        else blackKingLoc = x2 * 10 + y2;
     }
 
     private void castle(int x, int y) {
@@ -350,8 +510,8 @@ public class Chess
         }
     }
 
+    // if the king moves more than one space, then castling is happening
     private boolean isCastling(int x, int y) {
-        // if the king moves more than one space, then castling is happening
         return java.lang.Math.abs(pieceSelectedX - x) != 1;
     }
 
@@ -360,11 +520,11 @@ public class Chess
         Piece tempPiece1 = board[x1][y1];
         Piece tempPiece2 = board[x2][y2];
         if (!(tempPiece1.getColour() == tempPiece2.getColour())) {
-            board[x1][y1] = new Piece(pieceName.EMPTY, pieceColour.EMPTY);
+            board[x1][y1] = emptyPiece();
             board[x2][y2] = tempPiece1;
         }
-        resetAttackingArray();
-        setupAttackingArray();
+        if (tempPiece1.getName() == king) getKingLocations();
+        attackingArray();
         isCheck();
         if (checkSquare != -1) {
             b = true;
@@ -372,23 +532,13 @@ public class Chess
         checkSquare = -1;
         board[x1][y1] = tempPiece1;
         board[x2][y2] = tempPiece2;
+        if (tempPiece1.getName() == king) getKingLocations();
         return b;
     }
 
     public void isCheck() {
         checkSquare = -1;
-        int kingLoc = 0;
-        search :
-        {
-            for (int x = 0; x < size; x++) {
-                for (int y = 0; y < size; y++) {
-                    if (getPiece(x, y).getName() == king && getPiece(x, y).getColour() == currentTurn) {
-                        kingLoc = x * 10 + y;
-                        break search;
-                    }
-                }
-            }
-        }
+        int kingLoc = (currentTurn == white) ? whiteKingLoc : blackKingLoc;
         if (squaresAttacked[kingLoc / 10][kingLoc % 10] != pieceColour.EMPTY &&
             squaresAttacked[kingLoc / 10][kingLoc % 10] != currentTurn) {
             checkSquare = kingLoc;
@@ -413,33 +563,25 @@ public class Chess
         return isMate;
     }
 
-    private List<Integer> getPossibleMoves(int x, int y, pieceName name) {
-        List<Integer> moves = new ArrayList<>();
-        if (name == king)   {moves = king(x, y, false);}
-        if (name == queen)  {moves = queen(x, y, false);}
-        if (name == bishop) {moves = bishop(x, y, false);}
-        if (name == knight) {moves = knight(x, y, false);}
-        if (name == rook)   {moves = rook(x, y, false);}
-        if (name == pawn)   {moves = pawn(x, y, false);}
-        int checkSquareCopy = checkSquare;
-        for (int i = 0; i < moves.size(); i++) {
-            if (isCheck(x, y, moves.get(i) / 10, moves.get(i) % 10)) {
-                moves.remove(i);
-                i--;
-            }
-        }
-        checkSquare = checkSquareCopy;
-        return moves;
+    public boolean isStaleMate() {
+        boolean b = false;
+        int king;
+        king = (currentTurn == white) ? whiteKingLoc : blackKingLoc;
+        int kingX = king / 10;
+        int kingY = king % 10;
+        // this is why pieceColour.BOTH is gross
+        if (squaresAttacked[kingX][kingY] != oppositeColourGivenPiece(getPiece(kingX, kingY))) b = true;
+        if (squaresAttacked[kingX][kingY] == pieceColour.BOTH) b = false;
+        return b;
     }
 
-    // PIECE METHODS
+    // piece methods
 
-    /*
-    need to find a better way to add moves to list, multiplying by 10 works but is a bit messy
-     */
+    // need to find a better way to add moves to list, multiplying by 10 works but is a bit messy
     public List<Integer> pawn(int x, int y, boolean forArray) {
         List<Integer> moves = new ArrayList<>();
         int d = isWhite(x, y) ? 1 : -1; // ternary operators are sexy XD
+        if (!orientation) d = -d;
         // forward
         if (!forArray && isEmpty(x, y - d))
             moves.add(x * 10 + (y - d));
@@ -451,9 +593,21 @@ public class Chess
             moves.add((x + d) * 10 + (y - d));
         // jump at start
         if (!forArray) {
-            if (y == 6 || y == 1) {
-                if (isEmpty(x, y - d) && isEmpty(x, y - d*2))
-                    moves.add(x * 10 + (y - (2 * d)));
+            if (orientation) { // make this cleaner
+                if (getPiece(x, y).getColour() == white && y == 6)
+                    if (isEmpty(x, y - d) && isEmpty(x, y - d * 2))
+                        moves.add(x * 10 + (y - (2 * d)));
+                if (getPiece(x, y).getColour() == black && y == 1)
+                    if (isEmpty(x, y - d) && isEmpty(x, y - d * 2))
+                        moves.add(x * 10 + (y - (2 * d)));
+            }
+            if (!orientation) {
+                if (getPiece(x, y).getColour() == white && y == 1)
+                    if (isEmpty(x, y - d) && isEmpty(x, y - d * 2))
+                        moves.add(x * 10 + (y - (2 * d)));
+                if (getPiece(x, y).getColour() == black && y == 6)
+                    if (isEmpty(x, y - d) && isEmpty(x, y - d * 2))
+                        moves.add(x * 10 + (y - (2 * d)));
             }
         }
         // FOR ATTACK ARRAY
