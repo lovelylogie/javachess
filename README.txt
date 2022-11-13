@@ -13,5 +13,5 @@ then copy the FEN from the bottom of the website
 
 pressing 'r' will rotate the board
 
-all concepts of chess have been implemented in this game except for inadequate 
+all concepts of chess have been implemented in this program except for inadequate 
 material draw, 3 fold repition draw and 50 move rule draw
