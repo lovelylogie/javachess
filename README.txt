@@ -3,7 +3,7 @@ to run
 > javac *.java
 > java GUI
 
-when the program starts it will ask if you want a 'FEN' (Forsyth–Edwards Notation) 
+when the program starts it will ask if you want to input a 'FEN' (Forsyth–Edwards Notation) 
 for example this is the FEN for the starting position
 
 rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
