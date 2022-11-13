@@ -1,4 +1,4 @@
-1279 lines in total
+1057 excluding the SimpleCanvas, since I did not write that
 
 to run
 
