@@ -1,3 +1,5 @@
+1279 lines in total
+
 to run
 
 > javac *.java
