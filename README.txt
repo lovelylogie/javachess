@@ -4,3 +4,4 @@ to run
 > java GUI
 
 pressing 'r' will rotate the board
+tt
