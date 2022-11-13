@@ -1,5 +1,3 @@
-1057 excluding the SimpleCanvas, since I did not write that
-
 to run
 
 > javac *.java
