@@ -8,7 +8,7 @@ for example this is the FEN for the starting position
 
 rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 
-you can use websites such as https://lichess.org/editor to createa layout and 
+you can use websites such as https://lichess.org/editor to create a layout and 
 then copy the FEN from the bottom of the website
 
 pressing 'r' will rotate the board
