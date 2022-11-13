@@ -1,5 +1,3 @@
-package com.company;
-
 public class Piece {
     private pieceName name;
     private pieceColour colour;
